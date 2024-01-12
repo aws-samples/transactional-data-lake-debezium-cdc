@@ -11,7 +11,7 @@ Access the blogpost here.
 </p>
 
 Resources provisioned with the Cloudformation Stack:
-1. **Database instance**: We are going to use this resource as the source datasource for our CDC stream. It is a MySQL Database. The template also provisiones a MySQL Client EC2 Instance so we can connect securely to our Database. 
+1. **Database instance**: We are going to use this resource as the source datasource for our CDC stream. It is a MySQL Database. The template also provision a MySQL Client EC2 Instance so we can connect securely to our Database. 
 2. **Debezium Server**: We are going to use a EC2 Instance to host the Debezium Server Application. This can be hosted on-premisses or on AWS. We are provisioning a VPC to simulate a on-premisses network.
 3. **Kinesis Data Stream**: Debezium Server can write CDC data to KDS natively. We are going to create a stream on Kinesis to receive updates, inserts and deletes data. 
 
