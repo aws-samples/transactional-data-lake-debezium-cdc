@@ -134,6 +134,125 @@
                   }
             }          
       },
+      "IAMRoleGlue":{
+        "Type" : "AWS::IAM::Role",
+        "DependsOn": ["DebeziumOutputBucket","KDSStreamDBTBL"],
+        "Properties" : {
+            "AssumeRolePolicyDocument" : {
+              "Version": "2012-10-17",
+              "Statement": [
+                  {
+                      "Effect": "Allow",
+                      "Principal": {
+                          "Service": "glue.amazonaws.com"
+                      },
+                      "Action": "sts:AssumeRole"
+                  }
+              ]
+          },
+          "Policies": [
+            {
+              "PolicyName": "glues3policy",
+              "PolicyDocument": {
+                "Version": "2012-10-17",
+                "Statement": [
+                  {
+                    "Effect": "Allow",
+                    "Action": [
+                      "ec2:DeleteTags",
+                      "ec2:CreateTags"
+                    ],
+                    "Resource": [
+                      "arn:aws:ec2:*:*:instance/*",
+                      "arn:aws:ec2:*:*:security-group/*",
+                      "arn:aws:ec2:*:*:network-interface/*"
+                    ],
+                    "Condition": {
+                      "ForAllValues:StringEquals": {
+                        "aws:TagKeys": "aws-glue-service-resource"
+                      }
+                    }
+                  },
+                  {
+                    "Effect": "Allow",
+                    "Action": [
+                      "iam:GetRole",
+                      "cloudwatch:PutMetricData",
+                      "ec2:DeleteNetworkInterface",
+                      "s3:ListBucket",
+                      "s3:GetBucketAcl",
+                      "logs:CreateLogGroup",
+                      "ec2:DescribeVpcAttribute",
+                      "glue:*",
+                      "ec2:DescribeSecurityGroups",
+                      "ec2:CreateNetworkInterface",
+                      "kinesis:ListStreams",
+                      "logs:CreateLogStream",
+                      "s3:ListAllMyBuckets",
+                      "ec2:DescribeNetworkInterfaces",
+                      "ec2:DescribeVpcEndpoints",
+                      "iam:ListRolePolicies",
+                      "ec2:DescribeSubnets",
+                      "iam:GetRolePolicy",
+                      "s3:GetBucketLocation",
+                      "ec2:DescribeRouteTables"
+                    ],
+                    "Resource": "*"
+                  },
+                  {
+                    "Effect": "Allow",
+                    "Action": [
+                      "s3:PutObject",
+                      "s3:GetObject",
+                      "logs:CreateLogStream",
+                      "kinesis:ListShards",
+                      "kinesis:GetRecords",
+                      "s3:GetBucketAcl",
+                      "logs:CreateLogGroup",
+                      "logs:PutLogEvents"
+                    ],
+                    "Resource": [
+                      {"Fn::Sub": "arn:aws:kinesis:${AWS::Region}:${AWS::AccountId}:stream/debezium-demo"},
+                      {"Fn::Sub": "arn:aws:kinesis:${AWS::Region}:${AWS::AccountId}:stream/debezium-demo.DemoDBZ.MYTABLE"},
+                      {"Fn::Sub": "arn:aws:s3:::debezium-ouput-bucket-${AWS::AccountId}"},
+                      {"Fn::Sub": "arn:aws:s3:::debezium-ouput-bucket-${AWS::AccountId}/*"},
+                      "arn:aws:logs:*:*:*:/aws-glue/*"
+                    ]
+                  },
+                  {
+                    "Effect": "Allow",
+                    "Action": "s3:CreateBucket",
+                    "Resource": "arn:aws:s3:::aws-glue-*"
+                  },
+                  {
+                    "Effect": "Allow",
+                    "Action": [
+                      "s3:PutObject",
+                      "s3:GetObject",
+                      "s3:DeleteObject"
+                    ],
+                    "Resource": [
+                      "arn:aws:s3:::*/*aws-glue-*/*",
+                      "arn:aws:s3:::aws-glue-*/*"
+                    ]
+                  },
+                  {
+                    "Sid": "VisualEditor5",
+                    "Effect": "Allow",
+                    "Action": "s3:GetObject",
+                    "Resource": [
+                      "arn:aws:s3:::crawler-public*",
+                      "arn:aws:s3:::aws-glue-*"
+                    ]
+                  }
+                ]
+              }
+            }
+          ],
+            "Description" : "Role to access S3 using Glue notebook",
+            "RoleName" : "demo-aws-etl-glue"
+          }
+      },
       "MySQLParameterGroup":{
         "Type" : "AWS::RDS::DBParameterGroup",
         "Properties" : {
