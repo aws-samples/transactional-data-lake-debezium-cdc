@@ -110,7 +110,7 @@
                 "sudo amazon-linux-extras install java-openjdk11 -y\n",
                 "wget -O debezium.tar.gz https://repo1.maven.org/maven2/io/debezium/debezium-server-dist/1.5.0.Alpha1/debezium-server-dist-1.5.0.Alpha1.tar.gz \n",
                 "tar -xf debezium.tar.gz \n",
-                "wget -O commons-logging-1.3.0-bin.tar.gz https://dlcdn.apache.org//commons/logging/binaries/commons-logging-1.3.0-bin.tar.gz \n",
+                "wget -O commons-logging-1.3.0-bin.tar.gz https://archive.apache.org/dist/commons/logging/binaries/commons-logging-1.3.0-bin.tar.gz \n",
                 "tar -xf commons-logging-1.3.0-bin.tar.gz \n",
                 "cp ./commons-logging-1.3.0/commons-logging-1.3.0.jar ./debezium-server/lib \n",
                 "cd debezium-server/ \n",
@@ -125,7 +125,7 @@
       "DebeziumOutputBucket":{
             "Type" : "AWS::S3::Bucket",
             "Properties" : {
-                "BucketName" : {"Fn::Sub":"debezium-ouput-bucket-${AWS::AccountId}"},
+                "BucketName" : {"Fn::Sub":"debezium-output-bucket-${AWS::AccountId}"},
                 "PublicAccessBlockConfiguration" : {
                     "BlockPublicAcls": true,
                     "BlockPublicPolicy": true,
@@ -152,7 +152,7 @@
           },
           "Policies": [
             {
-              "PolicyName": "glues3policy",
+              "PolicyName": "kinesisands3policy",
               "PolicyDocument": {
                 "Version": "2012-10-17",
                 "Statement": [
@@ -202,20 +202,19 @@
                   {
                     "Effect": "Allow",
                     "Action": [
-                      "s3:PutObject",
-                      "s3:GetObject",
+                      "s3:*",
                       "logs:CreateLogStream",
-                      "kinesis:ListShards",
-                      "kinesis:GetRecords",
-                      "s3:GetBucketAcl",
+                      "kinesis:Get*",
+                      "kinesis:List*",
+                      "kinesis:Describe*",
                       "logs:CreateLogGroup",
                       "logs:PutLogEvents"
                     ],
                     "Resource": [
                       {"Fn::Sub": "arn:aws:kinesis:${AWS::Region}:${AWS::AccountId}:stream/debezium-demo"},
                       {"Fn::Sub": "arn:aws:kinesis:${AWS::Region}:${AWS::AccountId}:stream/debezium-demo.DemoDBZ.MYTABLE"},
-                      {"Fn::Sub": "arn:aws:s3:::debezium-ouput-bucket-${AWS::AccountId}"},
-                      {"Fn::Sub": "arn:aws:s3:::debezium-ouput-bucket-${AWS::AccountId}/*"},
+                      {"Fn::Sub": "arn:aws:s3:::debezium-output-bucket-${AWS::AccountId}"},
+                      {"Fn::Sub": "arn:aws:s3:::debezium-output-bucket-${AWS::AccountId}/*"},
                       "arn:aws:logs:*:*:*:/aws-glue/*"
                     ]
                   },
@@ -247,10 +246,25 @@
                   }
                 ]
               }
-            }
+            },
+            {
+              "PolicyName": "passrole",
+              "PolicyDocument": {
+              "Version": "2012-10-17",
+              "Statement": [
+                  {
+                      "Effect": "Allow",
+                      "Action": "iam:PassRole",
+                      "Resource": [
+                        {"Fn::Sub": "arn:aws:iam::${AWS::AccountId}:role/AWSGlueServiceNotebookRoleDemo"}
+                      ]
+                  }
+              ]
+              }
+          }
           ],
-            "Description" : "Role to access S3 using Glue notebook",
-            "RoleName" : "demo-aws-etl-glue"
+            "Description" : "Role to access Kinesis and S3 using Glue notebook",
+            "RoleName" : "AWSGlueServiceNotebookRoleDemo"
           }
       },
       "MySQLParameterGroup":{
